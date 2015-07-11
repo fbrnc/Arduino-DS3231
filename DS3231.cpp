@@ -85,56 +85,10 @@ void DS3231::setDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour
     Wire.endTransmission();
 }
 
-void DS3231::setDateTime(uint32_t t)
+void DS3231::setDateTime(uint32_t unixtime)
 {
-    t -= 946681200;
-
-    uint16_t year;
-    uint8_t month;
-    uint8_t day;
-    uint8_t hour;
-    uint8_t minute;
-    uint8_t second;
-
-    second = t % 60;
-    t /= 60;
-
-    minute = t % 60;
-    t /= 60;
-
-    hour = t % 24;
-    uint16_t days = t / 24;
-    uint8_t leap;
-
-    for (year = 0; ; ++year)
-    {
-        leap = year % 4 == 0;
-        if (days < 365 + leap)
-        {
-            break;
-        }
-        days -= 365 + leap;
-    }
-
-    for (month = 1; ; ++month)
-    {
-        uint8_t daysPerMonth = pgm_read_byte(daysArray + month - 1);
-
-        if (leap && month == 2)
-        {
-            ++daysPerMonth;
-        }
-
-        if (days < daysPerMonth)
-        {
-            break;
-        }
-        days -= daysPerMonth;
-    }
-
-    day = days + 1;
-
-    setDateTime(year+2000, month, day, hour, minute, second);
+	RTCDateTime t = getDateTime(t);
+	setDateTime(t.year, t.month, t.day, t.hour, t.minute, t.second);
 }
 
 void DS3231::setDateTime(const char* date, const char* time)
@@ -379,6 +333,68 @@ char* DS3231::dateFormat(const char* dateFormat, RTCAlarmTime dt)
     }
 
     return buffer;
+}
+
+
+RTCDateTime getDateTime(uint32_t unixtime)
+{
+	t -= 946681200;
+
+    uint16_t year;
+    uint8_t month;
+    uint8_t day;
+    uint8_t hour;
+    uint8_t minute;
+    uint8_t second;
+
+    second = t % 60;
+    t /= 60;
+
+    minute = t % 60;
+    t /= 60;
+
+    hour = t % 24;
+    uint16_t days = t / 24;
+    uint8_t leap;
+
+    for (year = 0; ; ++year)
+    {
+        leap = year % 4 == 0;
+        if (days < 365 + leap)
+        {
+            break;
+        }
+        days -= 365 + leap;
+    }
+
+    for (month = 1; ; ++month)
+    {
+        uint8_t daysPerMonth = pgm_read_byte(daysArray + month - 1);
+
+        if (leap && month == 2)
+        {
+            ++daysPerMonth;
+        }
+
+        if (days < daysPerMonth)
+        {
+            break;
+        }
+        days -= daysPerMonth;
+    }
+
+    day = days + 1;
+
+	t.year = year+2000;
+    t.month = month;
+    t.day = day;
+    // t.dayOfWeek = values[3];
+    t.hour = hour;
+    t.minute = minute;
+    t.second = second;
+    t.unixtime = unixtime;
+	
+	return t;
 }
 
 RTCDateTime DS3231::getDateTime(void)

@@ -93,9 +93,10 @@ class DS3231
 	bool begin(void);
 
 	void setDateTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second);
-	void setDateTime(uint32_t t);
+	void setDateTime(uint32_t unixtime);
 	void setDateTime(const char* date, const char* time);
 	RTCDateTime getDateTime(void);
+	RTCDateTime getDateTime(uint32_t unixtime);
 	uint8_t isReady(void);
 
 	DS3231_sqw_t getOutput(void);
